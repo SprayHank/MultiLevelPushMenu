@@ -242,12 +242,14 @@
             if(subLevel) {
                 // reset transform for sublevel
                 //console.log('_openMenu if _setTransform');
+                subLevel.style.transitionDuration = '';
                 this._setTransform('', subLevel);
                 // need to reset the translate value for the level menus that have the same level depth and are not open
                 for(var i = 0, len = this.levels.length; i < len; ++i) {
                     var levelEl = this.levels[i];
                     if(levelEl != subLevel && !classie.has(levelEl, 'mp-level-open')) {
                         //console.log('_openMenu if for _setTransform');
+                        levelEl.style.transitionDuration = '0s';
                         this._setTransform('translateX(-100%) translateX(' + -1 * levelFactor + 'px)', levelEl);
                     }
                 }
