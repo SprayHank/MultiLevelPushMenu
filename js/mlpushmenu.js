@@ -12,77 +12,80 @@
 (function(window) {
     'use strict';
     var getElementsByClassName = function(className, tag, elm) {
-        if(document.getElementsByClassName) {
-            getElementsByClassName = function(className, tag, elm) {
-                elm = elm || document;
-                var elements = elm.getElementsByClassName(className),
-                    nodeName = (tag) ? new RegExp("\\b" + tag + "\\b", "i") : null,
-                    returnElements = [],
-                    current;
-                for(var i = 0, il = elements.length; i < il; i += 1) {
-                    current = elements[i];
-                    if(!nodeName || nodeName.test(current.nodeName)) {
-                        returnElements.push(current);
-                    }
-                }
-                return returnElements;
-            };
-        } else if(document.evaluate) {
-            getElementsByClassName = function(className, tag, elm) {
-                tag = tag || "*";
-                elm = elm || document;
-                var classes = className.split(" "),
-                    classesToCheck = "",
-                    xhtmlNamespace = "http://www.w3.org/1999/xhtml",
-                    namespaceResolver = (document.documentElement.namespaceURI === xhtmlNamespace) ? xhtmlNamespace : null,
-                    returnElements = [],
-                    elements,
-                    node;
-                for(var j = 0, jl = classes.length; j < jl; j += 1) {
-                    classesToCheck += "[contains(concat(' ', @class, ' '), ' " + classes[j] + " ')]";
-                }
-                try {
-                    elements = document.evaluate(".//" + tag + classesToCheck, elm, namespaceResolver, 0, null);
-                } catch(e) {
-                    elements = document.evaluate(".//" + tag + classesToCheck, elm, null, 0, null);
-                }
-                while((node = elements.iterateNext())) {
-                    returnElements.push(node);
-                }
-                return returnElements;
-            };
-        } else {
-            getElementsByClassName = function(className, tag, elm) {
-                tag = tag || "*";
-                elm = elm || document;
-                var classes = className.split(" "),
-                    classesToCheck = [],
-                    elements = (tag === "*" && elm.all) ? elm.all : elm.getElementsByTagName(tag),
-                    current,
-                    returnElements = [],
-                    match;
-                for(var k = 0, kl = classes.length; k < kl; k += 1) {
-                    classesToCheck.push(new RegExp("(^|\\s)" + classes[k] + "(\\s|$)"));
-                }
-                for(var l = 0, ll = elements.length; l < ll; l += 1) {
-                    current = elements[l];
-                    match = false;
-                    for(var m = 0, ml = classesToCheck.length; m < ml; m += 1) {
-                        match = classesToCheck[m].test(current.className);
-                        if(!match) {
-                            break;
+            if(document.getElementsByClassName) {
+                getElementsByClassName = function(className, tag, elm) {
+                    elm = elm || document;
+                    var elements = elm.getElementsByClassName(className),
+                        nodeName = (tag) ? new RegExp("\\b" + tag + "\\b", "i") : null,
+                        returnElements = [],
+                        current;
+                    for(var i = 0, il = elements.length; i < il; i += 1) {
+                        current = elements[i];
+                        if(!nodeName || nodeName.test(current.nodeName)) {
+                            returnElements.push(current);
                         }
                     }
-                    if(match) {
-                        returnElements.push(current);
+                    return returnElements;
+                };
+            } else if(document.evaluate) {
+                getElementsByClassName = function(className, tag, elm) {
+                    tag = tag || "*";
+                    elm = elm || document;
+                    var classes = className.split(" "),
+                        classesToCheck = "",
+                        xhtmlNamespace = "http://www.w3.org/1999/xhtml",
+                        namespaceResolver = (document.documentElement.namespaceURI === xhtmlNamespace) ? xhtmlNamespace : null,
+                        returnElements = [],
+                        elements,
+                        node;
+                    for(var j = 0, jl = classes.length; j < jl; j += 1) {
+                        classesToCheck += "[contains(concat(' ', @class, ' '), ' " + classes[j] + " ')]";
                     }
-                }
-                return returnElements;
-            };
-        }
-        return getElementsByClassName(className, tag, elm);
-        //console.log(getElementsByClassName('mp-level', null, this.el));
-    };
+                    try {
+                        elements = document.evaluate(".//" + tag + classesToCheck, elm, namespaceResolver, 0, null);
+                    } catch(e) {
+                        elements = document.evaluate(".//" + tag + classesToCheck, elm, null, 0, null);
+                    }
+                    while((node = elements.iterateNext())) {
+                        returnElements.push(node);
+                    }
+                    return returnElements;
+                };
+            } else {
+                getElementsByClassName = function(className, tag, elm) {
+                    tag = tag || "*";
+                    elm = elm || document;
+                    var classes = className.split(" "),
+                        classesToCheck = [],
+                        elements = (tag === "*" && elm.all) ? elm.all : elm.getElementsByTagName(tag),
+                        current,
+                        returnElements = [],
+                        match;
+                    for(var k = 0, kl = classes.length; k < kl; k += 1) {
+                        classesToCheck.push(new RegExp("(^|\\s)" + classes[k] + "(\\s|$)"));
+                    }
+                    for(var l = 0, ll = elements.length; l < ll; l += 1) {
+                        current = elements[l];
+                        match = false;
+                        for(var m = 0, ml = classesToCheck.length; m < ml; m += 1) {
+                            match = classesToCheck[m].test(current.className);
+                            if(!match) {
+                                break;
+                            }
+                        }
+                        if(match) {
+                            returnElements.push(current);
+                        }
+                    }
+                    return returnElements;
+                };
+            }
+            return getElementsByClassName(className, tag, elm);
+            //console.log(getElementsByClassName('mp-level', null, this.el));
+        }, A = function() {},
+        G = function(id) {return(document.getElementById(id))},
+        R = function() {},
+        C = function() {};
 
     function extend(a, b) {
         for(var key in b) {
@@ -138,7 +141,9 @@
             // space between each overlaped level
             levelSpacing: 40,
             // classname for the element (if any) that when clicked closes the current level
-            backClass: 'mp-back'
+            backClass: 'mp-back',
+            //how long the menu slide in (ms)
+            slideTime: 300
         },
         _init: function() {
             // if menu is open or not
@@ -160,8 +165,56 @@
             this.eventtype = mobilecheck() ? 'touchstart' : 'click';
             // add the class mp-overlap or mp-cover to the main element depending on options.type
             classie.add(this.el, 'mp-' + this.options.type);
+            //managing CSS
+            this._initCSS();
             // initialize / bind the necessary events
             this._initEvents();
+        },
+        _initCSS: function() {
+            function preFix(tag, value) {
+                return '-webkit-' + tag + ':' + value + ';-moz-' + tag + ':' + value + ';' + tag + ':' + value + ';';
+            };
+            if(!G('mlPushMenuStyles')) {
+                var styleTag = document.createElement('STYLE');
+                styleTag.id = 'mlPushMenuStyles';
+                document.documentElement.appendChild(styleTag);
+            }
+            var CSS = '';
+            CSS += ".mp-pusher { position : relative; left : 0; height : 100%; }";
+            CSS += ".mp-menu { position : absolute; /* we can't use fixed here :( */ top : 0; left : 0; z-index : 1; width : 300px; height : 100%; "+preFix("transform", "translateX(-100%)")+" }";
+            CSS += ".mp-level { position : absolute; top : 0; left : 0; width : 100%; height : 100%; background : #336CA6; "+preFix("transform", "translateX(-100%)")+" }";
+            /* overlays for pusher and for level that gets covered */
+            CSS += ".mp-pusher::after, .mp-level::after, .mp-level::before { position : absolute; top : 0; right : 0; width : 0; height : 0; content : ''; opacity : 0; }";
+            CSS += ".mp-pusher::after, .mp-level::after { background : rgba(0, 0, 0, 0.3); "+preFix("transition", "opacity 0.3s, width 0.1s 0.3s, height 0.1s 0.3s")+" }";
+            CSS += ".mp-level::after { z-index : -1; }";
+            /* asynchronous shadow the document when the menu slided in */
+            CSS += ".mp-pusher.mp-pushed::after, .mp-level.mp-level-overlay::after { width : 100%; height : 100%; opacity : 1; "+preFix('transition','opacity 0.3s ease '+(this.options.slideTime-0+50)+'ms')+" }";
+            CSS += ".mp-level.mp-level-overlay { cursor : pointer; }";
+            CSS += ".mp-level.mp-level-overlay.mp-level::before { width : 100%; height : 100%; background : transparent; opacity : 1; }";
+            /* make the menu slide in */
+            CSS += ".mp-pusher, .mp-level { "+preFix("transition", "all "+this.options.slideTime+"ms")+" }";
+            /* overlap */
+            CSS += ".mp-overlap .mp-level.mp-level-open { box-shadow : 1px 0 1px rgba(0, 0, 0, 0.2); "+preFix("transform", "translateX(-40px)")+" }";
+            /* First level */
+            CSS += ".mp-menu > .mp-level, .mp-menu > .mp-level.mp-level-open, .mp-menu.mp-overlap > .mp-level, .mp-menu.mp-overlap > .mp-level.mp-level-open { box-shadow : none; "+preFix("transform", "translateX(0)")+" }";
+            /* slide menu cover mode */
+            CSS += ".mp-cover .mp-level.mp-level-open { "+preFix("transform", "translateX(0)")+" }";
+            CSS += ".mp-cover .mp-level.mp-level-open > ul > li > .mp-level:not(.mp-level-open) { "+preFix("transform", "translateX(-100%)")+" }";
+            /* content style */
+            CSS += ".mp-menu ul { margin : 0; padding : 0; list-style : none; }";
+            CSS += ".mp-menu h2 { margin : 0; padding : 1em; color : rgba(0, 0, 0, 0.4); text-shadow : 0 0 2px rgba(0, 0, 0, 0.1); font-weight : 300; font-size : 2em; }";
+            CSS += ".mp-menu.mp-overlap h2::before { position : absolute; top : 0; right : 0; margin-right : 8px; font-size : 75%; line-height : 1.8; opacity : 0; -webkit-transition : opacity 0.3s, -webkit-transform 0.1s 0.3s; -moz-transition : opacity 0.3s, -moz-transform 0.1s 0.3s; transition : opacity 0.3s, transform 0.1s 0.3s; "+preFix("transform", "translateX(-100%)")+" }";
+            CSS += ".mp-menu.mp-cover h2 { text-transform : uppercase; font-weight : 700; letter-spacing : 1px; font-size : 1em; }";
+            CSS += ".mp-overlap .mp-level.mp-level-overlay > h2::before { opacity : 1; -webkit-transition : -webkit-transform 0.3s, opacity 0.3s; -moz-transition : -moz-transform 0.3s, opacity 0.3s; transition : transform 0.3s, opacity 0.3s; "+preFix("transform", "translateX(0)")+" }";
+            CSS += ".mp-menu ul li > a { display : block; padding : 0.7em 1em 0.7em 1.8em; outline : none; box-shadow : inset 0 -1px rgba(0, 0, 0, 0.2); text-shadow : 0 0 2px rgba(255, 255, 255, 0.1); font-size : 1.4em; -webkit-transition : background 0.3s, box-shadow 0.3s; -moz-transition : background 0.3s, box-shadow 0.3s; transition : background 0.3s, box-shadow 0.3s; }";
+            CSS += ".mp-menu ul li::before { position : absolute; left : 10px; z-index : -1; color : rgba(0, 0, 0, 0.2); line-height : 3.5; }";
+            CSS += ".mp-level > ul > li:first-child > a { box-shadow : inset 0 -1px rgba(0, 0, 0, 0.2), inset 0 1px rgba(0, 0, 0, 0.2); }";
+            CSS += ".mp-menu ul li a:hover, .mp-level > ul > li:first-child > a:hover { background : rgba(0, 0, 0, 0.2); box-shadow : inset 0 -2px rgba(0, 0, 0, 0); }";
+            CSS += ".mp-menu .mp-level.mp-level-overlay > ul > li > a, .mp-level.mp-level-overlay > ul > li:first-child > a { box-shadow : inset 0 -1px rgba(0, 0, 0, 0); }";
+            CSS += ".mp-back { background : rgba(0, 0, 0, 0.1); outline : none; color : #FFFFFF; text-transform : uppercase; letter-spacing : 1px; font-weight : 700; display : block; font-size : 0.8em; padding : 1em; position : relative; box-shadow : inset 0 1px rgba(0, 0, 0, 0.1); -webkit-transition : background 0.3s; -moz-transition : background 0.3s; transition : background 0.3s; }";
+            CSS += ".mp-back::after { font-family : 'linecons'; position : absolute; content : \"\\e037\"; right : 10px; font-size : 1.3em; color : rgba(0, 0, 0, 0.3); }";
+            CSS += ".mp-menu .mp-level.mp-level-overlay > .mp-back, .mp-menu .mp-level.mp-level-overlay > .mp-back::after { background : transparent; box-shadow : none; color : transparent; }";
+            G('mlPushMenuStyles').innerHTML = CSS;
         },
         _initEvents: function() {
             var self = this;
@@ -236,20 +289,22 @@
             // move the main wrapper
             var levelFactor = ( this.level - 1 ) * this.options.levelSpacing,
                 translateVal = this.options.type === 'overlap' ? this.el.offsetWidth + levelFactor : this.el.offsetWidth;
-            console.log('_openMenu _setTransform');
+            //console.log('_openMenu _setTransform');
             this._setTransform('translateX(' + translateVal + 'px)');
 
             if(subLevel) {
                 // reset transform for sublevel
                 //console.log('_openMenu if _setTransform');
                 subLevel.style.transitionDuration = '';
+                subLevel.style.visibility = '';
                 this._setTransform('', subLevel);
                 // need to reset the translate value for the level menus that have the same level depth and are not open
                 for(var i = 0, len = this.levels.length; i < len; ++i) {
                     var levelEl = this.levels[i];
                     if(levelEl != subLevel && !classie.has(levelEl, 'mp-level-open')) {
                         //console.log('_openMenu if for _setTransform');
-                        levelEl.style.transitionDuration = '0s';
+                        levelEl.style.transitionDuration = '0ms';
+                        levelEl.style.visibility = 'hidden';
                         this._setTransform('translateX(-100%) translateX(' + -1 * levelFactor + 'px)', levelEl);
                     }
                 }
