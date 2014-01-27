@@ -82,7 +82,8 @@
 			}
 			return getElementsByClassName(className, tag, elm);
 			//console.log(getElementsByClassName('mp-level', null, this.el));
-		}, A = function() {},
+		},
+		A = function() {},
 		G = function(id) {return(document.getElementById(id))},
 		R = function() {},
 		C = function() {};
